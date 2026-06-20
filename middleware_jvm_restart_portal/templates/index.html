@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Middleware JVM Restart</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="rail">
+      <div class="brand-mark">A</div>
+      <div class="rail-line"></div>
+      <div class="rail-icon active" title="JVM Restart">↻</div>
+      <div class="rail-icon" title="Automation">▣</div>
+      <div class="rail-icon" title="Audit">⌁</div>
+    </aside>
+
+    <main class="main-panel">
+      <section class="hero-card">
+        <div>
+          <p class="eyebrow">Middleware Automation Portal</p>
+          <h1>JVM Restart</h1>
+          <p class="hero-copy">Select one or more JVMs by environment, launch the Ansible restart job template, and monitor job status from one place.</p>
+        </div>
+        <div class="hero-actions">
+          <div class="user-pill"><span>Signed in as</span><strong id="userDisplay">{{ display_name }}</strong></div>
+          <a class="btn btn-ghost logout-link" href="{{ url_for('logout') }}">Logout</a>
+          <div class="hero-status"><span class="status-dot idle"></span><span id="portalState">Ready</span></div>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <section class="panel primary-panel">
+          <div class="panel-header">
+            <div><h2>JVM Restart</h2><p>Build the restart request table before launching the job template.</p></div>
+            <div class="actions-bar"><button id="addBtn" class="btn btn-primary">+ Add</button><button id="removeSelectedBtn" class="btn btn-ghost" disabled>Remove</button></div>
+          </div>
+          <div class="table-wrap">
+            <table class="jvm-table" aria-label="Selected JVM restart table">
+              <thead><tr><th class="checkbox-col"><input id="selectAll" type="checkbox" aria-label="Select all JVM rows" disabled></th><th>Actions</th><th>Environment</th><th>JVM Name</th></tr></thead>
+              <tbody id="selectionBody"><tr class="empty-row"><td colspan="4"><div class="empty-state"><div class="empty-icon">☁</div><strong>No JVM selected</strong><span>Click Add to choose an environment and JVM name.</span></div></td></tr></tbody>
+            </table>
+          </div>
+          <div class="footer-actions"><button id="restartBtn" class="btn btn-danger" disabled>Restart Selected JVMs</button></div>
+        </section>
+
+        <aside class="panel summary-panel">
+          <h2>Request Summary</h2>
+          <div class="summary-list">
+            <div class="summary-item"><span>Total JVMs</span><strong id="totalCount">0</strong></div>
+            <div class="summary-item"><span>Environments</span><strong id="envCount">0</strong></div>
+            <div class="summary-item"><span>Last Job</span><strong id="lastJob">—</strong></div>
+          </div>
+          <div class="hint-card"><strong>Payload preview</strong><pre id="payloadPreview">[]</pre></div>
+        </aside>
+      </section>
+
+      <section id="runtimePanel" class="panel runtime-panel hidden">
+        <div class="panel-header compact"><div><h2>Execution Status</h2><p id="runtimeSubtitle">Waiting for job status...</p></div><div class="job-pill" id="jobPill">Not started</div></div>
+        <div class="runtime-actions"><button id="runningBtn" class="btn btn-running" disabled><span class="spinner"></span>Running</button><button id="refreshStatusBtn" class="btn btn-ghost">Refresh</button><button id="copyStdoutBtn" class="btn btn-ghost">Copy terminal</button></div>
+        <div class="terminal" id="terminal" aria-live="polite">Terminal output will appear here after launch.</div>
+        <div id="artifactsBox" class="artifacts hidden"><h3>Artifacts</h3><pre id="artifactsPre">{}</pre></div>
+        <div id="failureBox" class="failure hidden"><h3>Failure Information</h3><pre id="failurePre"></pre></div>
+      </section>
+
+      <section class="panel active-jobs-panel">
+        <div class="panel-header compact"><div><h2>Currently Executing Jobs</h2><p>Active jobs launched by any logged-in portal user.</p></div><button id="refreshActiveJobsBtn" class="btn btn-ghost">Refresh active jobs</button></div>
+        <div class="table-wrap"><table class="jvm-table history-table" aria-label="Currently executing jobs table"><thead><tr><th>Started</th><th>User</th><th>Job ID</th><th>Status</th><th>JVMs</th></tr></thead><tbody id="activeJobsBody"><tr><td colspan="5">No active jobs loaded yet.</td></tr></tbody></table></div>
+      </section>
+
+      <section class="panel history-panel">
+        <div class="panel-header compact"><div><h2>Job Execution History</h2><p>Recent JVM restart jobs launched from this portal.</p></div><button id="refreshHistoryBtn" class="btn btn-ghost">Refresh history</button></div>
+        <div class="table-wrap"><table class="jvm-table history-table" aria-label="Job execution history table"><thead><tr><th>Time</th><th>User</th><th>Job ID</th><th>Status</th><th>JVMs</th><th>Failure</th></tr></thead><tbody id="historyBody"><tr><td colspan="6">No history loaded yet.</td></tr></tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+    <div class="modal-card">
+      <div class="modal-header"><div><p class="eyebrow">Add target</p><h2 id="addModalTitle">Select JVM</h2></div><button id="closeModalBtn" class="icon-btn" aria-label="Close modal">×</button></div>
+      <form id="addForm" class="modal-form">
+        <label for="envSelect">Environment</label><select id="envSelect" required><option value="">Select environment</option></select>
+        <label for="jvmSearch">Select JVM Name</label>
+        <div class="combo-select">
+          <input id="jvmSearch" class="combo-input" type="text" role="combobox" aria-expanded="false" aria-controls="jvmDropdown" placeholder="Select environment first" autocomplete="off" disabled>
+          <button id="jvmToggle" class="combo-toggle" type="button" aria-label="Open JVM list" disabled>⌄</button>
+          <input id="jvmSelect" type="hidden">
+          <div id="jvmDropdown" class="combo-menu hidden" role="listbox"></div>
+        </div>
+        <div id="jvmSearchHint" class="search-hint hidden"></div>
+        <div id="modalMessage" class="modal-message hidden"></div>
+        <div class="modal-actions"><button type="button" id="cancelModalBtn" class="btn btn-ghost">Cancel</button><button type="submit" class="btn btn-primary">Add to table</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
