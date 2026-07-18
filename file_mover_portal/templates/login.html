@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Login | {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="login-card">
+    <h1>Sign in</h1>
+    <p>Use your LDAP credentials.</p>
+    <form method="post" action="{{ url_for('login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button class="primary full" type="submit">Login</button>
+    </form>
+</section>
+{% endblock %}
