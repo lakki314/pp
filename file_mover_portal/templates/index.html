@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Move ZIP Files | {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<div id="selection-context" data-username="{{ username }}" data-max-selection="{{ config.MAX_FILES_PER_MOVE }}" data-start-url="{{ url_for('api_move_start') }}" data-file-url="{{ url_for('api_move_file') }}" data-complete-url="{{ url_for('api_move_complete') }}"></div>
+<div class="page-heading">
+  <div>
+    <h1>Move ZIP files</h1>
+    <p><strong>Source:</strong> {{ source_dir }}</p>
+    <p><strong>Target:</strong> {{ destination_dir }}</p>
+  </div>
+</div>
+
+<form class="filter-bar" method="get" action="{{ url_for('index') }}">
+  <label for="q">Search filename</label>
+  <input id="q" name="q" type="search" value="{{ search }}" placeholder="Search ZIP files">
+  <label for="per_page">Show</label>
+  <select id="per_page" name="per_page" onchange="this.form.submit()">
+    {% for size in page_size_options %}<option value="{{ size }}" {% if size == per_page %}selected{% endif %}>{{ size }}</option>{% endfor %}
+  </select>
+  <button type="submit">Search</button>
+  {% if search %}<a class="secondary-button" href="{{ url_for('index', per_page=per_page) }}">Clear search</a>{% endif %}
+</form>
+
+<div class="selection-summary" aria-live="polite">
+  <strong>Selected across all pages:</strong> <span id="selected-count">0</span>
+  <button id="clear-selection" class="link-action" type="button">Clear selection</button>
+</div>
+
+<p class="result-count">Showing {{ pagination.start_item }}–{{ pagination.end_item }} of {{ pagination.total }} matching ZIP files.</p>
+
+<form id="move-form" method="post" action="{{ url_for('move_files') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div id="selected-hidden-inputs"></div>
+  <div class="toolbar">
+    <label><input id="select-all" type="checkbox"> Select this page</label>
+    <button id="move-button" class="primary" type="submit">Move selected files (0)</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Select</th><th>ZIP file name</th><th>Size</th><th>Last modified</th></tr></thead>
+      <tbody>
+      {% for file in files %}
+        <tr><td><input class="file-check" type="checkbox" value="{{ file.name }}" aria-label="Select {{ file.name }}"></td><td>{{ file.name }}</td><td>{{ file.size_display }}</td><td>{{ file.modified }}</td></tr>
+      {% else %}<tr><td colspan="4" class="empty">No matching ZIP files are available.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</form>
+{% set endpoint='index' %}{% include '_pagination.html' %}
+
+<div id="confirm-modal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <h2 id="confirm-title">Confirm file move</h2>
+    <p>You are about to move <strong id="confirm-count">0</strong> ZIP file(s).</p>
+    <div class="directory-flow">
+      <div><span>Source</span><strong>{{ source_dir }}</strong></div>
+      <div class="flow-arrow">→</div>
+      <div><span>Target</span><strong>{{ destination_dir }}</strong></div>
+    </div>
+    <p class="warning-note">Existing target files will not be overwritten.</p>
+    <div class="modal-actions">
+      <button id="cancel-move" type="button" class="secondary-button">Cancel</button>
+      <button id="confirm-move" type="button" class="primary">Move files</button>
+    </div>
+  </div>
+</div>
+
+<div id="progress-modal" class="modal" hidden>
+  <div class="modal-card progress-card" role="dialog" aria-modal="true" aria-labelledby="progress-title">
+    <h2 id="progress-title">Moving ZIP files</h2>
+    <p id="progress-message">Preparing the batch…</p>
+    <div class="progress-track" aria-label="Move progress"><div id="progress-bar" class="progress-bar"></div></div>
+    <div class="progress-numbers">
+      <strong><span id="progress-completed">0</span> of <span id="progress-total">0</span> completed</strong>
+      <span id="progress-percent">0%</span>
+    </div>
+    <div class="status-grid">
+      <div><span>Moved</span><strong id="progress-moved">0</strong></div>
+      <div><span>Failed</span><strong id="progress-failed">0</strong></div>
+      <div><span>Elapsed</span><strong id="progress-elapsed">00:00</strong></div>
+    </div>
+    <p class="current-file">Current file: <strong id="current-file">—</strong></p>
+  </div>
+</div>
+
+<div id="completion-modal" class="modal" hidden>
+  <div class="modal-card completion-card" role="dialog" aria-modal="true" aria-labelledby="completion-title">
+    <div id="completion-icon" class="completion-icon">✓</div>
+    <h2 id="completion-title">Move completed</h2>
+    <p>Batch ID: <strong id="completion-batch">—</strong></p>
+    <div class="status-grid completion-grid">
+      <div><span>Requested</span><strong id="completion-requested">0</strong></div>
+      <div><span>Moved</span><strong id="completion-moved">0</strong></div>
+      <div><span>Failed</span><strong id="completion-failed">0</strong></div>
+      <div><span>Email report</span><strong id="completion-email">—</strong></div>
+    </div>
+    <div id="failure-panel" class="failure-panel" hidden>
+      <h3>Failed files</h3><ul id="failure-list"></ul>
+    </div>
+    <div class="modal-actions">
+      <a id="download-report" class="secondary-button" href="#">Download Excel report</a>
+      <button id="return-to-files" type="button" class="primary">Return to files</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+{% endblock %}
