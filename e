@@ -1,72 +1,124 @@
-# Application identity
-APP_NAME=File Mover Portal
-SECRET_KEY=replace-with-at-least-32-random-characters
-FLASK_DEBUG=false
+###############################################################################
+# Application
+###############################################################################
+APP_NAME=Middleware File Mover Portal
+ENVIRONMENT=PROD
+DEBUG=False
+SECRET_KEY=<GENERATE_64_CHAR_SECRET>
 
-# Gunicorn listens on the Python application server's internal interface.
-# Do not use 127.0.0.1 when IBM HTTP Server is on another host.
-APP_HOST=10.20.30.40
+###############################################################################
+# Context Root
+###############################################################################
+# Deploy as:
+# https://server/filemover
+# Use "/" to deploy at the web server root.
+APPLICATION_ROOT=/filemover
+
+# Used when generating external URLs
+PREFERRED_URL_SCHEME=https
+
+###############################################################################
+# Server
+###############################################################################
+APP_HOST=10.10.10.20
 APP_PORT=8000
-GUNICORN_WORKERS=3
-GUNICORN_THREADS=4
-GUNICORN_TIMEOUT=120
 
-# Exact IBM HTTP Server source IP(s), comma-separated. Never expose Gunicorn publicly.
-TRUSTED_PROXY_IPS=10.20.30.25
+###############################################################################
+# Gunicorn
+###############################################################################
+GUNICORN_WORKERS=4
+GUNICORN_THREADS=4
+GUNICORN_TIMEOUT=300
+
+###############################################################################
+# Reverse Proxy (IBM HTTP Server)
+###############################################################################
+TRUSTED_PROXY_IPS=10.10.10.15
 TRUSTED_PROXY_COUNT=1
 
-SOURCE_DIR=data/incoming
-DESTINATION_DIR=data/processed
-ALLOWED_EXTENSIONS=zip
-MAX_FILE_SIZE_BYTES=5368709120
-MAX_FILES_PER_MOVE=200
-DEFAULT_FILES_PER_PAGE=20
-PAGE_SIZE_OPTIONS=20,50,100,200
-MAX_FILES_PER_PAGE=200
-MAX_FILENAME_LENGTH=255
+###############################################################################
+# LDAP
+###############################################################################
+LDAP_SERVER=ldap.company.com
+LDAP_PORT=636
+LDAP_USE_SSL=True
 
+LDAP_BIND_DN=cn=svc_filemover,ou=Service Accounts,dc=company,dc=com
+LDAP_BIND_PASSWORD=<PASSWORD>
+
+LDAP_BASE_DN=dc=company,dc=com
+LDAP_USER_FILTER=(uid={username})
+
+# Display name shown after login
+LDAP_DISPLAY_NAME_ATTRIBUTE=cn
+
+# Group authorization
+LDAP_GROUP_BASE_DN=ou=Groups,dc=company,dc=com
+LDAP_ALLOWED_GROUPS=MiddlewareAdmins,MiddlewareOperators
+LDAP_GROUP_MATCH_MODE=ANY
+
+###############################################################################
+# SQLite
+###############################################################################
 DATABASE_PATH=data/file_mover.db
-SQLITE_BUSY_TIMEOUT_MS=10000
-BACKUP_DIR=backups
-HISTORY_LIMIT=200
-EXCEL_EXPORT_LIMIT=5000
 
-REPORT_DIR=reports
-REPORT_RETENTION_DAYS=30
-BATCH_RETENTION_HOURS=168
-MAX_ACTIVE_BATCHES_PER_USER=3
+###############################################################################
+# Directories
+###############################################################################
+SOURCE_DIRECTORY=/data/source
+TARGET_DIRECTORY=/data/target
 
+REPORT_DIRECTORY=reports
 LOG_DIR=logs
-ACCESS_LOG=logs/gunicorn-access.log
-ERROR_LOG=logs/gunicorn-error.log
+BACKUP_DIR=backups
+RUN_DIR=run
+
+###############################################################################
+# Reports / Cleanup
+###############################################################################
+REPORT_RETENTION_DAYS=30
+BATCH_RETENTION_HOURS=72
+
+###############################################################################
+# Logging
+###############################################################################
+ACCESS_LOG=access.log
+ERROR_LOG=error.log
+
 LOG_MAX_BYTES=10485760
 LOG_BACKUP_COUNT=10
 LOG_RETENTION_DAYS=30
 
-LDAP_SERVER=ldaps://ldap.example.com:636
-LDAP_USE_SSL=true
-LDAP_CA_CERT_FILE=certs/company-root-ca.pem
-LDAP_CONNECT_TIMEOUT=10
-LDAP_USER_DN_TEMPLATE=
-LDAP_BIND_DN=CN=svc_filemover,OU=Service Accounts,DC=example,DC=com
-LDAP_BIND_PASSWORD=retrieve-from-secret-manager
-LDAP_BASE_DN=DC=example,DC=com
-LDAP_USER_FILTER=(sAMAccountName={username})
-LDAP_GROUPS_REQUIRED=CN=FileMoverUsers,OU=Groups,DC=example,DC=com;CN=MiddlewareSupport,OU=Groups,DC=example,DC=com
-LDAP_GROUP_MATCH_MODE=ANY
-LDAP_NESTED_GROUPS_ENABLED=false
-LDAP_GROUP_ATTRIBUTE=memberOf
-LDAP_EMAIL_ATTRIBUTE=mail
-LDAP_DISPLAY_NAME_ATTRIBUTE=cn
+###############################################################################
+# Upload Limits
+###############################################################################
+MAX_FILE_SIZE_BYTES=2147483648
 
-SESSION_COOKIE_SECURE=true
-SESSION_TIMEOUT_MINUTES=30
-LOGIN_MAX_ATTEMPTS=5
-LOGIN_WINDOW_SECONDS=300
-
-MAIL_ENABLED=true
-SMTP_HOST=smtp.example.com
+###############################################################################
+# SMTP Relay
+###############################################################################
+SMTP_HOST=smtp.company.com
 SMTP_PORT=25
-SMTP_TIMEOUT_SECONDS=20
-MAIL_FROM_ADDRESS=file-mover@example.com
-MAIL_FROM_NAME=File Mover Portal
+
+MAIL_FROM_NAME=Middleware File Mover
+MAIL_FROM_ADDRESS=filemover@company.com
+
+###############################################################################
+# Session
+###############################################################################
+SESSION_TIMEOUT_MINUTES=30
+
+SESSION_COOKIE_SECURE=True
+SESSION_COOKIE_HTTPONLY=True
+SESSION_COOKIE_SAMESITE=Lax
+
+# Automatically determined by the application from APPLICATION_ROOT.
+# Normally you do not need to change this.
+# SESSION_COOKIE_PATH=/filemover
+
+###############################################################################
+# Branding
+###############################################################################
+COMPANY_NAME=Company Name
+PORTAL_TITLE=Middleware File Mover Portal
+FOOTER_TEXT=© Company Name
