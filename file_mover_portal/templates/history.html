@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}History | {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-heading history-heading hero-heading">
+    <div><span class="eyebrow">Traceability</span><h1>Audit history</h1><p>Review recorded portal activity. Newest events appear first and are stored in SQLite.</p></div>
+    <a class="primary button-link" href="{{ url_for('export_history_excel') }}"><span aria-hidden="true">↓</span> Export to Excel</a>
+</div>
+<section class="content-card flush"><div class="table-wrap">
+<table>
+    <thead>
+    <tr>
+        <th>Timestamp (UTC)</th>
+        <th>User</th>
+        <th>Action</th>
+        <th>Details</th>
+        <th>Client IP</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for entry in entries %}
+    <tr>
+        <td>{{ entry.timestamp }}</td>
+        <td>{{ entry.username }}</td>
+        <td><span class="badge">{{ entry.action }}</span></td>
+        <td>{{ entry.details }}</td>
+        <td>{{ entry.remote_addr }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="empty">No audit entries are available.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div></section>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Dashboard | {{ config.APP_NAME }}{% endblock %}{% block content %}
+<div class="page-title"><h1>Dashboard</h1><p>Move, verify and track your ZIP files</p></div>
+<div class="metric-grid">
+<div class="metric"><span class="metric-icon blue">▱</span><div><strong>{{ available_files }}</strong><b>Available Files</b><small>In source directory</small></div></div>
+<div class="metric"><span class="metric-icon green">✓</span><div><strong>{{ moved_today }}</strong><b>Moved Today</b><small>Successfully moved</small></div></div>
+<div class="metric"><span class="metric-icon amber">▢</span><div><strong>{{ destination_files }}</strong><b>Files in Target</b><small>Available for verification</small></div></div>
+<div class="metric"><span class="metric-icon purple">▤</span><div><strong>{{ batches_30d }}</strong><b>Batches (30 Days)</b><small>{{ attention_batches }} need attention</small></div></div>
+</div>
+<div class="dashboard-grid">
+<section class="panel"><div class="panel-head"><div><h2>Move Files</h2><p>Select files from the source directory and move them to the target directory.</p></div></div><div class="directory-cards"><div class="directory-card source"><b>Source Directory</b><code>{{ source_dir }}</code><span>▱ {{ available_files }} Files</span></div><div class="flow-line">···· ⟳ ····➜</div><div class="directory-card target"><b>Target Directory</b><code>{{ destination_dir }}</code><span>▱ Ready</span></div></div><a class="primary wide" href="{{ url_for('move_page') }}">Go to Move Files &nbsp; ➜</a></section>
+<section class="panel"><div class="panel-head"><h2>Recent Activity</h2><a class="small-button" href="{{ url_for('history') }}">View All</a></div><div class="activity-table"><div class="activity-row header"><span>Activity</span><span>Time</span><span>Status</span></div>{% for item in recent_activity %}<div class="activity-row"><span><b>{{ item.action|replace('_',' ')|title }}</b><small>{{ item.details }}</small></span><span>{{ item.timestamp[:16]|replace('T',' ') }}</span><span class="status {{ 'bad' if 'FAILED' in item.action else 'good' }}">{{ 'Failed' if 'FAILED' in item.action else 'Recorded' }}</span></div>{% else %}<div class="empty-state">No recent activity yet.</div>{% endfor %}</div></section>
+</div>{% endblock %}

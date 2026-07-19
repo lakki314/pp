@@ -1,0 +1,11 @@
+{% if pagination.total_pages > 1 %}
+<nav class="pagination" aria-label="File pages">
+  {% if pagination.has_previous %}
+    <a href="{{ url_for(endpoint, page=pagination.previous_page, per_page=per_page, q=search, directory=directory|default(None), sort=sort_by, order=sort_order) }}">Previous</a>
+  {% else %}<span class="disabled">Previous</span>{% endif %}
+  <span>Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
+  {% if pagination.has_next %}
+    <a href="{{ url_for(endpoint, page=pagination.next_page, per_page=per_page, q=search, directory=directory|default(None), sort=sort_by, order=sort_order) }}">Next</a>
+  {% else %}<span class="disabled">Next</span>{% endif %}
+</nav>
+{% endif %}
