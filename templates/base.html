@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#14213d">
+    <title>{% block title %}{{ config.APP_NAME }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="{{ 'authenticated' if username else 'guest' }}">
+{% if username %}
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="{{ url_for('index') }}" aria-label="{{ config.APP_NAME }} home">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M3.5 7.5h6l2-2h9a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18V9a1.5 1.5 0 0 1 1.5-1.5Z"/><path d="m9 13 2 2 4-4"/></svg>
+            </span>
+            <span><strong>{{ config.APP_NAME }}</strong><small>Secure file operations</small></span>
+        </a>
+        <nav class="main-nav" aria-label="Primary navigation">
+            <a class="{{ 'active' if request.endpoint == 'index' else '' }}" href="{{ url_for('index') }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h12m-4-4 4 4-4 4"/><path d="M20 5v14"/></svg> Move files
+            </a>
+            <a class="{{ 'active' if request.endpoint == 'verify_files' else '' }}" href="{{ url_for('verify_files') }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4M8 11l2 2 4-4"/></svg> Verify
+            </a>
+            <a class="{{ 'active' if request.endpoint in ['history', 'export_history_excel'] else '' }}" href="{{ url_for('history') }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg> History
+            </a>
+        </nav>
+        <div class="account-menu">
+            <div class="avatar" aria-hidden="true">{{ display_name[:1]|upper }}</div>
+            <div class="account-copy"><span>{{ display_name }}</span><small>{{ username }}</small></div>
+            <form method="post" action="{{ url_for('logout') }}" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="logout-button" type="submit" title="Sign out" aria-label="Sign out">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10"/></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+</header>
+{% endif %}
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}" role="alert">
+                <span class="flash-icon" aria-hidden="true">{{ '✓' if category == 'success' else '!' }}</span>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+<footer class="site-footer"><span>{{ config.APP_NAME }}</span><span>Authorized enterprise use only</span></footer>
+</body>
+</html>

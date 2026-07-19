@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Verify Files | {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-heading hero-heading">
+  <div><span class="eyebrow">Read-only inspection</span><h1>Verify files</h1><p>Review archives awaiting movement or confirm files already delivered to the target.</p></div>
+  <div class="heading-stat"><span>Matching files</span><strong>{{ pagination.total }}</strong></div>
+</div>
+<div class="subtabs">
+  <a class="{{ 'active' if directory == 'source' else '' }}" href="{{ url_for('verify_files', directory='source') }}">Source files</a>
+  <a class="{{ 'active' if directory == 'destination' else '' }}" href="{{ url_for('verify_files', directory='destination') }}">Target files</a>
+</div>
+<div class="directory-banner"><span>Current directory</span><strong>{{ source_dir if directory == 'source' else destination_dir }}</strong></div>
+<section class="content-card"><form class="filter-bar" method="get" action="{{ url_for('verify_files') }}">
+  <input type="hidden" name="directory" value="{{ directory }}">
+  <label for="q">Search filename</label>
+  <input id="q" name="q" type="search" value="{{ search }}" placeholder="Search ZIP files">
+  <label for="per_page">Show</label>
+  <select id="per_page" name="per_page" onchange="this.form.submit()">
+    {% for size in page_size_options %}<option value="{{ size }}" {% if size == per_page %}selected{% endif %}>{{ size }}</option>{% endfor %}
+  </select>
+  <button type="submit">Search</button>
+  {% if search %}<a class="secondary-button" href="{{ url_for('verify_files', directory=directory, per_page=per_page) }}">Clear</a>{% endif %}
+</form>
+<p class="result-count">Showing {{ pagination.start_item }}–{{ pagination.end_item }} of {{ pagination.total }} matching ZIP files.</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>ZIP file name</th><th>Size</th><th>Last modified</th><th>Location</th></tr></thead>
+    <tbody>
+    {% for file in files %}<tr><td><span class="file-name"><span class="file-type-icon">ZIP</span>{{ file.name }}</span></td><td>{{ file.size_display }}</td><td>{{ file.modified }}</td><td>{{ 'Source' if directory == 'source' else 'Target' }}</td></tr>
+    {% else %}<tr><td colspan="4" class="empty">No matching ZIP files were found.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% set endpoint='verify_files' %}{% include '_pagination.html' %}</section>
+{% endblock %}
